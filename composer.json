@@ -64,12 +64,20 @@
 		"lowest": "validate-prefer-lowest",
 		"lowest-setup": "composer update --prefer-lowest --prefer-stable --prefer-dist --no-interaction && cp composer.json composer.backup && composer require --dev dereuromark/composer-prefer-lowest && mv composer.backup composer.json",
 		"cs-check": "phpcs --colors --parallel=16",
-		"cs-fix": "phpcbf --colors --parallel=16"
+		"cs-fix": "phpcbf --colors --parallel=16",
+		"pot-setup": "cp composer.json composer.backup && composer require --dev dereuromark/cakephp-translate && mv composer.backup composer.json",
+		"pot-check": "php vendor/dereuromark/cakephp-translate/scripts/pot-updater.php --fail-on-diff",
+		"pot-update": "php vendor/dereuromark/cakephp-translate/scripts/pot-updater.php --update"
 	},
 	"config": {
 		"allow-plugins": {
 			"cakephp/plugin-installer": true,
 			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-master": "0.x-dev"
 		}
 	}
 }

@@ -1,0 +1,31 @@
+// cakephp-reactions — database schema snapshot (DBML)
+//
+// A merged snapshot of all plugin migrations under config/Migrations/.
+// Hand-maintained: update it when you add a migration that changes these tables.
+// Paste into https://dbdiagram.io (or any DBML tool) to view/diagram.
+// DBML reference: https://dbml.dbdiagram.io/docs
+// Need it as a migration or raw SQL? Convert this DBML at https://toolbox.dereuromark.de/dbml
+//
+// Note: foreign_key is a *polymorphic* reference to your application's records — each
+// row may point at a different table — so it is intentionally not a real foreign key.
+// It defaults to a (big)integer; widen it to varchar(36) for UUID / char primary keys.
+
+Project cakephp_reactions {
+  database_type: 'Generic'
+  Note: 'Reactions plugin table only. Your own entity tables are referenced loosely via foreign_key.'
+}
+
+Table reactions_reactions {
+  id integer [pk, increment]
+  foreign_key int [not null, note: 'Polymorphic entity id; set Polymorphic.type to biginteger/uuid/binaryuuid to change']
+  model varchar(80) [not null, note: 'Referenced model alias, e.g. Posts']
+  user_id integer [not null]
+  reaction varchar(32) [not null, note: 'Reaction key — emoji literal (👍) or named key (thumbsup); utf8mb4_bin on MySQL']
+  created datetime [not null]
+
+  indexes {
+    user_id [name: 'reaction_user_id']
+    (model, foreign_key) [name: 'reaction_foreign_key']
+    (model, foreign_key, user_id, reaction) [unique, name: 'reaction_unique']
+  }
+}

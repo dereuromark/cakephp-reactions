@@ -20,6 +20,21 @@ Each reaction row stores a string reaction key in the `reaction` column. That ke
 a literal emoji like `👍` or a named key like `thumbsup`. Set `allowed` if you want to
 restrict the accepted set.
 
-## Install, Setup, Usage
+## Requirements
 
-See the **[Docs](docs/README.md)** for details.
+- PHP 8.2+
+- CakePHP 5.1+
+
+For the branch/version compatibility matrix see the [wiki](https://github.com/dereuromark/cakephp-reactions/wiki).
+
+## Installation
+
+```bash
+composer require dereuromark/cakephp-reactions
+```
+
+See the **[Docs](docs/README.md)** for setup and usage.
+
+## License
+
+[MIT](LICENSE)
