@@ -34,7 +34,7 @@ jobs:
         if: matrix.db-type == 'mysql'
         run: |
           sudo service mysql start
-          mysql -h 127.0.0.1 -u root -proot -e 'CREATE DATABASE cakephp;'
+          mysql -h 127.0.0.1 -u root -proot -e 'CREATE DATABASE cakephp DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;'
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -75,7 +75,7 @@ jobs:
       - name: Run PHPUnit
         run: |
           if [[ ${{ matrix.db-type }} == 'sqlite' ]]; then export DB_URL='sqlite:///:memory:'; fi
-          if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export DB_URL='mysql://root:root@127.0.0.1/cakephp?encoding=utf8'; fi
+          if [[ ${{ matrix.db-type }} == 'mysql' ]]; then export DB_URL='mysql://root:root@127.0.0.1/cakephp?encoding=utf8mb4'; fi
           if [[ ${{ matrix.db-type }} == 'pgsql' ]]; then export DB_URL='postgres://postgres:postgres@127.0.0.1/postgres'; fi
           if [[ ${{ matrix.php-version }} == '8.2' ]]; then
             vendor/bin/phpunit --coverage-clover=coverage.xml

@@ -38,7 +38,6 @@ class ReactionsFixture extends TestFixture {
 	public function init(): void {
 		$this->records = [
 			[
-				'id' => 1,
 				'foreign_key' => 1,
 				'model' => 'Posts',
 				'user_id' => 1,
@@ -46,7 +45,6 @@ class ReactionsFixture extends TestFixture {
 				'created' => '2024-03-13 02:01:23',
 			],
 			[
-				'id' => 2,
 				'foreign_key' => 1,
 				'model' => 'Posts',
 				'user_id' => 2,
