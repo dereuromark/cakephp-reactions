@@ -27,7 +27,3 @@ composer require dereuromark/cakephp-reactions
 ```
 
 See the **[Docs](docs/README.md)** for setup and usage.
-
-## License
-
-[MIT](LICENSE)
