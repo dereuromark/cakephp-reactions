@@ -1,0 +1,11 @@
+parameters:
+	level: 8
+	paths:
+		- src/
+	bootstrapFiles:
+		- tests/bootstrap.php
+	ignoreErrors:
+		- identifier: missingType.iterableValue
+		- identifier: missingType.generics
+		- '#PHPDoc tag @property for property .+ReactionsTable\:\:\$.+ contains unresolvable type.#'
+		- '#Access to an undefined property .+Table::\$Reactions.#'

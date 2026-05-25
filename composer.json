@@ -1,0 +1,75 @@
+{
+	"name": "dereuromark/cakephp-reactions",
+	"description": "A CakePHP plugin for emoji/named reactions on any model",
+	"type": "cakephp-plugin",
+	"keywords": [
+		"cakephp",
+		"plugin",
+		"reactions",
+		"emoji",
+		"likes",
+		"votes"
+	],
+	"homepage": "https://github.com/dereuromark/cakephp-reactions/",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "Mark Scherer",
+			"homepage": "https://www.dereuromark.de",
+			"role": "Maintainer"
+		},
+		{
+			"name": "Other contributors",
+			"homepage": "https://github.com/dereuromark/cakephp-reactions/graphs/contributors",
+			"role": "Developer"
+		}
+	],
+	"support": {
+		"issues": "https://github.com/dereuromark/cakephp-reactions/issues",
+		"source": "https://github.com/dereuromark/cakephp-reactions/"
+	},
+	"require": {
+		"php": ">=8.2",
+		"cakephp/cakephp": "^5.1.1"
+	},
+	"require-dev": {
+		"cakephp/migrations": "^5.0.0",
+		"dereuromark/cakephp-tinyauth": "^4.2.0",
+		"fig-r/psr2r-sniffer": "dev-master",
+		"phpunit/phpunit": "^11.5 || ^12.1 || ^13.0"
+	},
+	"conflict": {
+		"cakephp/migrations": "<4.5"
+	},
+	"autoload": {
+		"psr-4": {
+			"Reactions\\": "src/",
+			"Reactions\\Test\\Fixture\\": "tests/Fixture/"
+		}
+	},
+	"autoload-dev": {
+		"psr-4": {
+			"Reactions\\Test\\": "tests/",
+			"Cake\\Test\\": "vendor/cakephp/cakephp/tests/",
+			"TestApp\\": "tests/test_app/src/"
+		}
+	},
+	"prefer-stable": true,
+	"scripts": {
+		"test": "phpunit",
+		"test-coverage": "phpunit --log-junit tmp/coverage/unitreport.xml --coverage-html tmp/coverage --coverage-clover tmp/coverage/coverage.xml",
+		"stan": "phpstan analyze",
+		"stan-tests": "phpstan analyze -c tests/phpstan.neon",
+		"stan-setup": "cp composer.json composer.backup && composer require --dev phpstan/phpstan:^2.0.0 && mv composer.backup composer.json",
+		"lowest": "validate-prefer-lowest",
+		"lowest-setup": "composer update --prefer-lowest --prefer-stable --prefer-dist --no-interaction && cp composer.json composer.backup && composer require --dev dereuromark/composer-prefer-lowest && mv composer.backup composer.json",
+		"cs-check": "phpcs --colors --parallel=16",
+		"cs-fix": "phpcbf --colors --parallel=16"
+	},
+	"config": {
+		"allow-plugins": {
+			"cakephp/plugin-installer": true,
+			"dealerdirect/phpcodesniffer-composer-installer": true
+		}
+	}
+}
