@@ -4,10 +4,6 @@ namespace TestApp\Controller;
 
 use Cake\Controller\Controller;
 
-/**
- * @property \TinyAuth\Controller\Component\AuthUserComponent $AuthUser
- * @property \TinyAuth\Controller\Component\AuthComponent $Auth
- */
 class ReactedPostsController extends Controller {
 
 	protected ?string $defaultTable = 'Posts';

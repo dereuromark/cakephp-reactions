@@ -201,11 +201,7 @@ class ReactableComponent extends Component {
 		}
 
 		$userId = $this->getConfig('userId') ?: null;
-		if (!$userId && $this->Controller->components()->has('AuthUser')) {
-			$userId = $this->Controller->AuthUser->user($userIdField);
-		} elseif (!$userId && $this->Controller->components()->has('Auth')) {
-			$userId = $this->Controller->Auth->user($userIdField);
-		} elseif (!$userId) {
+		if (!$userId) {
 			$userId = $this->Controller->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
 		}
 

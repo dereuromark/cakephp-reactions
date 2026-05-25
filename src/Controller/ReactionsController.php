@@ -9,32 +9,15 @@ use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
 use Cake\View\JsonView;
 use InvalidArgumentException;
-use TinyAuth\Controller\Component\AuthComponent;
-use TinyAuth\Controller\Component\AuthUserComponent;
 
 /**
  * @property \Reactions\Model\Table\ReactionsTable $Reactions
- * @property \TinyAuth\Controller\Component\AuthUserComponent $AuthUser
- * @property \TinyAuth\Controller\Component\AuthComponent $Auth
  */
 class ReactionsController extends AppController {
 
 	use AuthTrait;
 
 	protected ?string $defaultTable = 'Reactions.Reactions';
-
-	/**
-	 * @return void
-	 */
-	public function initialize(): void {
-		parent::initialize();
-
-		if (class_exists(AuthUserComponent::class)) {
-			$this->loadComponent('TinyAuth.AuthUser');
-		} elseif (class_exists(AuthComponent::class)) {
-			$this->loadComponent('TinyAuth.Auth');
-		}
-	}
 
 	/**
 	 * @return class-string<\Cake\View\View>[]

@@ -7,7 +7,6 @@ use Cake\View\View;
 
 /**
  * @property \Reactions\View\Helper\ReactionsHelper $Reactions
- * @property \TinyAuth\View\Helper\AuthUserHelper $AuthUser
  */
 class AppView extends View {
 

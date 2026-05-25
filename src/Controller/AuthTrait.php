@@ -21,13 +21,6 @@ trait AuthTrait {
 			return $uid;
 		}
 
-		if ($this->components()->has('AuthUser')) {
-			return $this->AuthUser->user($userIdField);
-		}
-		if ($this->components()->has('Auth')) {
-			return $this->Auth->user($userIdField);
-		}
-
 		return $this->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
 	}
 

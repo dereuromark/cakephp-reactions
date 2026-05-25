@@ -23,9 +23,6 @@ trait AuthTrait {
 
 		/** @var \App\View\AppView $view */
 		$view = $this->_View;
-		if ($view->helpers()->has('AuthUser')) {
-			return $view->AuthUser->user($userIdField);
-		}
 
 		return $view->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
 	}
