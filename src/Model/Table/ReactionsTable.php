@@ -142,6 +142,11 @@ class ReactionsTable extends Table {
 	}
 
 	/**
+	 * Reaction counts for a record, keyed by reaction and ordered by reaction key.
+	 *
+	 * The ordering is applied in PHP so the result is deterministic regardless of
+	 * the database's `GROUP BY` ordering.
+	 *
 	 * @param string $model
 	 * @param int $foreignKey
 	 *
@@ -166,7 +171,10 @@ class ReactionsTable extends Table {
 			->combine('reaction', 'count')
 			->toArray();
 
-		return array_map('intval', $result);
+		$counts = array_map('intval', $result);
+		ksort($counts);
+
+		return $counts;
 	}
 
 	/**

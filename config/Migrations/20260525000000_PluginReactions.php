@@ -22,14 +22,18 @@ class PluginReactions extends BaseMigration {
 		}
 
 		// Reaction keys may be 4-byte emoji; force utf8mb4 on MySQL so they fit
-		// regardless of the server/table default charset.
+		// regardless of the server/table default charset. The *binary* collation
+		// is required: accent/case-insensitive collations (utf8mb4_unicode_ci,
+		// utf8mb4_general_ci) give many distinct emoji the same weight, which both
+		// breaks `GROUP BY reaction` counting and collapses different reactions in
+		// the unique index. utf8mb4_bin compares byte-for-byte.
 		$reactionOptions = [
 			'default' => null,
 			'limit' => 32,
 			'null' => false,
 		];
 		if ($this->getAdapter()->getAdapterType() === 'mysql') {
-			$reactionOptions['collation'] = 'utf8mb4_unicode_ci';
+			$reactionOptions['collation'] = 'utf8mb4_bin';
 		}
 
 		$this->table('reactions_reactions')
