@@ -22,10 +22,21 @@ Each reaction row stores a string reaction key in the `reaction` column. That ke
 a literal emoji like `👍` or a named key like `thumbsup`. Set `allowed` if you want to
 restrict the accepted set.
 
+## Features
+
+- Polymorphic reactions for any CakePHP model.
+- Multiple distinct reactions per user per record.
+- Emoji literals (`👍`) and named keys (`thumbsup`, `rocket`, ...).
+- Optional allow-listing for accepted reaction keys.
+- Helper-rendered reaction widgets and count output.
+- Controller and component integration strategies.
+- Optional counter cache for fast list views.
+- Admin listing, protected by an explicit access callback.
+
 ## Installation
 
 ```bash
 composer require dereuromark/cakephp-reactions
 ```
 
-See the **[Docs](docs/README.md)** for setup and usage.
+See the **[Docs](docs/README.md)** for setup, examples, configuration, and troubleshooting.
