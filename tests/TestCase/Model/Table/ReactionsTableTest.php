@@ -43,12 +43,15 @@ class ReactionsTableTest extends TestCase {
 	 * @return void
 	 */
 	public function testAdd(): void {
+		// Existing reaction (Posts:1, user 1, 👍) from fixture: returns null.
 		$result = $this->Reactions->add('Posts', 1, 1, '👍');
 
-		$this->assertFalse($result->isNew());
+		$this->assertNull($result);
 		$this->assertSame(2, $this->Reactions->find()->count());
 
+		// New reaction: returns the persisted entity.
 		$result = $this->Reactions->add('Posts', 1, 1, '❤️');
+		$this->assertNotNull($result);
 		$this->assertFalse($result->isNew());
 		$this->assertSame(3, $this->Reactions->find()->count());
 	}

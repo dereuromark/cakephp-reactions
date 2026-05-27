@@ -116,12 +116,14 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
-		$entity = $this->reactionsTable()->add($options['model'], (int)$options['modelId'], (int)$options['userId'], (string)$options['reaction']);
-		if (!$entity->isNew()) {
-			return $entity->id;
-		}
+		$entity = $this->reactionsTable()->add(
+			(string)$options['model'],
+			$this->assertModelId($options['modelId']),
+			(int)$options['userId'],
+			(string)$options['reaction'],
+		);
 
-		return null;
+		return $entity?->id;
 	}
 
 	/**
@@ -133,7 +135,12 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
-		return $this->reactionsTable()->remove($options['model'], (int)$options['modelId'], (int)$options['userId'], (string)$options['reaction']);
+		return $this->reactionsTable()->remove(
+			(string)$options['model'],
+			$this->assertModelId($options['modelId']),
+			(int)$options['userId'],
+			(string)$options['reaction'],
+		);
 	}
 
 	/**
@@ -145,30 +152,36 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
-		$action = $this->reactionsTable()->toggle($options['model'], (int)$options['modelId'], (int)$options['userId'], (string)$options['reaction']);
+		$modelId = $this->assertModelId($options['modelId']);
+		$action = $this->reactionsTable()->toggle(
+			(string)$options['model'],
+			$modelId,
+			(int)$options['userId'],
+			(string)$options['reaction'],
+		);
 
 		return [
 			'action' => $action,
-			'counts' => $this->reactionCounts((int)$options['modelId']),
+			'counts' => $this->reactionCounts($modelId),
 		];
 	}
 
 	/**
-	 * @param int $modelId
+	 * @param string|int $modelId
 	 *
 	 * @return array<string, int>
 	 */
-	public function reactionCounts(int $modelId): array {
+	public function reactionCounts(int|string $modelId): array {
 		return $this->reactionsTable()->counts((string)$this->getConfig('model'), $modelId);
 	}
 
 	/**
-	 * @param int $modelId
+	 * @param string|int $modelId
 	 * @param int $userId
 	 *
 	 * @return array<string>
 	 */
-	public function userReactions(int $modelId, int $userId): array {
+	public function userReactions(int|string $modelId, int $userId): array {
 		$query = $this->reactionsTable()->find();
 
 		/** @var array<string> $reactions */
@@ -238,6 +251,22 @@ class ReactableBehavior extends Behavior {
 		if ($allowed !== null && is_array($allowed) && !in_array($reaction, $allowed, true)) {
 			throw new BadRequestException('Invalid reaction key');
 		}
+	}
+
+	/**
+	 * @param mixed $modelId
+	 *
+	 * @return string|int
+	 */
+	protected function assertModelId(mixed $modelId): int|string {
+		if (is_int($modelId)) {
+			return $modelId;
+		}
+		if (is_string($modelId) && $modelId !== '') {
+			return $modelId;
+		}
+
+		throw new BadRequestException('Invalid modelId');
 	}
 
 }

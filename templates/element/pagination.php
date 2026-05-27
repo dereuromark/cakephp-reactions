@@ -14,19 +14,19 @@ if (!isset($separator)) {
 }
 
 if (empty($first)) {
-	$first = __d('favorites', 'first');
+	$first = __d('reactions', 'first');
 }
 if (empty($last)) {
-	$last = __d('favorites', 'last');
+	$last = __d('reactions', 'last');
 }
 if (empty($prev)) {
-	$prev = __d('favorites', 'previous');
+	$prev = __d('reactions', 'previous');
 }
 if (empty($next)) {
-	$next = __d('favorites', 'next');
+	$next = __d('reactions', 'next');
 }
 if (!isset($format)) {
-	$format = __d('favorites', 'Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total');
+	$format = __d('reactions', 'Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total');
 }
 if (!empty($reverse)) {
 	$tmp = $first;

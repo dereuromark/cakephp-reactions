@@ -98,7 +98,7 @@ class ReactionsHelper extends Helper {
 	 */
 	public function counts(string $alias, int|string $id): string {
 		$table = $this->reactionTable();
-		$counts = $table->counts($alias, (int)$id);
+		$counts = $table->counts($alias, $id);
 		$icons = $this->icons();
 		$out = [];
 

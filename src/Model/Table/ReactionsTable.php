@@ -3,6 +3,7 @@
 namespace Reactions\Model\Table;
 
 use Cake\Core\Configure;
+use Cake\ORM\Exception\PersistenceFailedException;
 use Cake\ORM\RulesChecker;
 use Cake\ORM\Table;
 use Cake\Validation\Validator;
@@ -72,40 +73,48 @@ class ReactionsTable extends Table {
 	}
 
 	/**
+	 * Returns the reaction entity if newly created, or null if it already existed.
+	 *
 	 * @param string $model
-	 * @param int $foreignKey
+	 * @param string|int $foreignKey
 	 * @param int $userId
 	 * @param string $reaction
 	 *
-	 * @return \Reactions\Model\Entity\Reaction
+	 * @return \Reactions\Model\Entity\Reaction|null
 	 */
-	public function add(string $model, int $foreignKey, int $userId, string $reaction): Reaction {
-		$data = [
-			'model' => $model,
-			'foreign_key' => $foreignKey,
-			'user_id' => $userId,
-			'reaction' => $reaction,
-		];
+	public function add(string $model, int|string $foreignKey, int $userId, string $reaction): ?Reaction {
+		$created = null;
+		$this->findOrCreate(
+			[
+				'model' => $model,
+				'foreign_key' => $foreignKey,
+				'user_id' => $userId,
+				'reaction' => $reaction,
+			],
+			function (Reaction $entity) use (&$created): void {
+				$created = $entity;
+			},
+		);
 
-		$entity = $this->findOrCreate($data);
-		if ($entity->hasErrors()) {
-			return $entity;
+		// findOrCreate returns the entity unchanged when its save() failed (rules
+		// or validation errors). Detect by isNew() still being true and throw so
+		// the caller (and toggle()) cannot mistake a silent miss for success.
+		if ($created !== null && $created->isNew()) {
+			throw new PersistenceFailedException($created, ['add']);
 		}
 
-		$this->saveOrFail($entity);
-
-		return $entity;
+		return $created;
 	}
 
 	/**
 	 * @param string $model
-	 * @param int $foreignKey
+	 * @param string|int $foreignKey
 	 * @param int $userId
 	 * @param string $reaction
 	 *
 	 * @return int
 	 */
-	public function remove(string $model, int $foreignKey, int $userId, string $reaction): int {
+	public function remove(string $model, int|string $foreignKey, int $userId, string $reaction): int {
 		return $this->deleteAll([
 			'model' => $model,
 			'foreign_key' => $foreignKey,
@@ -116,13 +125,13 @@ class ReactionsTable extends Table {
 
 	/**
 	 * @param string $model
-	 * @param int $foreignKey
+	 * @param string|int $foreignKey
 	 * @param int $userId
 	 * @param string $reaction
 	 *
 	 * @return string
 	 */
-	public function toggle(string $model, int $foreignKey, int $userId, string $reaction): string {
+	public function toggle(string $model, int|string $foreignKey, int $userId, string $reaction): string {
 		$conditions = [
 			'model' => $model,
 			'foreign_key' => $foreignKey,
@@ -148,11 +157,11 @@ class ReactionsTable extends Table {
 	 * the database's `GROUP BY` ordering.
 	 *
 	 * @param string $model
-	 * @param int $foreignKey
+	 * @param string|int $foreignKey
 	 *
 	 * @return array<string, int>
 	 */
-	public function counts(string $model, int $foreignKey): array {
+	public function counts(string $model, int|string $foreignKey): array {
 		$query = $this->find();
 
 		/** @var array<string, int> $result */
