@@ -19,11 +19,11 @@ $cspNonce = (string)$this->getRequest()->getAttribute('cspNonce', '');
     <ul>
 		<?php foreach ($models as $model => $count): ?>
 		<li>
-			<?php echo h($model); ?>: <?php echo $count; ?>x <?php echo $this->Form->postButton('Reset', ['?' => ['model' => $model]], [
+			<?php echo h($model); ?>: <?= h((string)$count) ?>x <?php echo $this->Form->postButton(__d('reactions', 'Reset'), ['?' => ['model' => $model]], [
 				'class' => 'btn btn-link btn-sm p-0 align-baseline',
 				'form' => [
 					'class' => 'd-inline',
-					'data-confirm-message' => 'Sure?',
+					'data-confirm-message' => __d('reactions', 'Are you sure?'),
 				],
 			]); ?>
 		</li>

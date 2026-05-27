@@ -42,6 +42,8 @@ class ReactableBehavior extends Behavior {
 		'userModelClass' => 'Users',
 		'userModelConfig' => null,
 		'allowed' => null,
+		'counterCache' => false,
+		'fieldCounter' => 'reactions_count',
 		'implementedFinders' => [
 			'reactions' => 'findReactions',
 			'reactedBy' => 'findReactedBy',
@@ -116,12 +118,18 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
+		$model = (string)$options['model'];
+		$modelId = $this->assertModelId($options['modelId']);
 		$entity = $this->reactionsTable()->add(
-			(string)$options['model'],
-			$this->assertModelId($options['modelId']),
+			$model,
+			$modelId,
 			(int)$options['userId'],
 			(string)$options['reaction'],
 		);
+
+		if ($entity !== null) {
+			$this->updateCounterCache($model, $modelId);
+		}
 
 		return $entity?->id;
 	}
@@ -135,12 +143,20 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
-		return $this->reactionsTable()->remove(
-			(string)$options['model'],
-			$this->assertModelId($options['modelId']),
+		$model = (string)$options['model'];
+		$modelId = $this->assertModelId($options['modelId']);
+		$deleted = $this->reactionsTable()->remove(
+			$model,
+			$modelId,
 			(int)$options['userId'],
 			(string)$options['reaction'],
 		);
+
+		if ($deleted > 0) {
+			$this->updateCounterCache($model, $modelId);
+		}
+
+		return $deleted;
 	}
 
 	/**
@@ -152,13 +168,16 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
+		$model = (string)$options['model'];
 		$modelId = $this->assertModelId($options['modelId']);
 		$action = $this->reactionsTable()->toggle(
-			(string)$options['model'],
+			$model,
 			$modelId,
 			(int)$options['userId'],
 			(string)$options['reaction'],
 		);
+
+		$this->updateCounterCache($model, $modelId);
 
 		return [
 			'action' => $action,
@@ -251,6 +270,72 @@ class ReactableBehavior extends Behavior {
 		if ($allowed !== null && is_array($allowed) && !in_array($reaction, $allowed, true)) {
 			throw new BadRequestException('Invalid reaction key');
 		}
+	}
+
+	/**
+	 * Public entry point so the controller flow can keep the counter in sync
+	 * after calls that bypass the behavior (`ReactionsController::add/remove/
+	 * toggle/delete` go through `ReactionsTable` directly).
+	 *
+	 * `$model` is the value stored in `reactions_reactions.model` for the row
+	 * just written; the count uses that to scope the SELECT. The write target
+	 * is always `$this->_table` (the table this behavior is loaded on), so the
+	 * caller is responsible for invoking this on the correct host table.
+	 * Unlike the internal `updateCounterCache()` path, this method does not
+	 * require `$model` to match the behavior's configured model — it is meant
+	 * for cases where the stored model string differs from the host table's
+	 * alias (e.g., `Reactions.models.Posts => 'Blog.Posts'`).
+	 *
+	 * @param string $model
+	 * @param string|int $modelId
+	 *
+	 * @return void
+	 */
+	public function refreshReactionCount(string $model, int|string $modelId): void {
+		if (!$this->getConfig('counterCache')) {
+			return;
+		}
+
+		$field = (string)$this->getConfig('fieldCounter');
+		if ($field === '' || !$this->_table->getSchema()->hasColumn($field)) {
+			return;
+		}
+
+		$count = $this->reactionsTable()->find()
+			->where([
+				'model' => $model,
+				'foreign_key' => $modelId,
+			])
+			->count();
+
+		$primaryKey = $this->_table->getPrimaryKey();
+		if (is_array($primaryKey)) {
+			$primaryKey = $primaryKey[0];
+		}
+
+		$this->_table->updateAll(
+			[$field => $count],
+			[$primaryKey => $modelId],
+		);
+	}
+
+	/**
+	 * Internal path used by the behavior's own add/remove/toggle methods. Skips
+	 * the update when the caller's `model` option targets a different model than
+	 * the one this behavior is loaded on — the counter belongs to `$this->_table`
+	 * and updating it from another model's reaction set would corrupt it.
+	 *
+	 * @param string $model
+	 * @param string|int $modelId
+	 *
+	 * @return void
+	 */
+	protected function updateCounterCache(string $model, int|string $modelId): void {
+		if ($model !== $this->getConfig('model')) {
+			return;
+		}
+
+		$this->refreshReactionCount($model, $modelId);
 	}
 
 	/**

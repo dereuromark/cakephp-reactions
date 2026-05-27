@@ -147,6 +147,134 @@ class ReactableBehaviorTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testCounterCacheRefreshesOnAdd(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'counterCache' => true,
+			'fieldCounter' => 'count',
+		]);
+
+		$this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 1,
+			'reaction' => '❤️',
+		]);
+
+		$post = $this->table->get(1);
+		$this->assertSame(3, $post->get('count'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testCounterCacheRefreshesOnRemove(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'counterCache' => true,
+			'fieldCounter' => 'count',
+		]);
+
+		$this->table->getBehavior('Reactable')->removeReaction([
+			'modelId' => 1,
+			'userId' => 1,
+			'reaction' => '👍',
+		]);
+
+		$post = $this->table->get(1);
+		$this->assertSame(1, $post->get('count'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testCounterCacheRefreshesOnToggle(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'counterCache' => true,
+			'fieldCounter' => 'count',
+		]);
+
+		// toggle removes existing 👍 → count drops to 1
+		$this->table->getBehavior('Reactable')->toggleReaction([
+			'modelId' => 1,
+			'userId' => 1,
+			'reaction' => '👍',
+		]);
+		$this->assertSame(1, $this->table->get(1)->get('count'));
+
+		// toggle adds it back → count rises to 2
+		$this->table->getBehavior('Reactable')->toggleReaction([
+			'modelId' => 1,
+			'userId' => 1,
+			'reaction' => '👍',
+		]);
+		$this->assertSame(2, $this->table->get(1)->get('count'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testCounterCacheDisabledByDefault(): void {
+		$this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 1,
+			'reaction' => '❤️',
+		]);
+
+		$post = $this->table->get(1);
+		$this->assertSame(0, $post->get('count'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testRefreshReactionCountUsesGivenModelString(): void {
+		// refreshReactionCount must respect the caller-supplied model string so
+		// counter cache works for configs that store a non-alias value (e.g.
+		// `Reactions.models.Posts => 'Blog.Posts'`), not just $this->_table's alias.
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'counterCache' => true,
+			'fieldCounter' => 'count',
+		]);
+
+		// Seed an extra row stored under a non-alias model string.
+		$reactions = $this->table->Reactions->getTarget();
+		$reactions->add('Blog.Posts', 1, 2, '🚀');
+
+		$this->table->getBehavior('Reactable')->refreshReactionCount('Blog.Posts', 1);
+
+		$this->assertSame(1, $this->table->get(1)->get('count'));
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testCounterCacheSilentWhenColumnMissing(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'counterCache' => true,
+			'fieldCounter' => 'reactions_count',
+		]);
+
+		// `reactions_count` does not exist on the Posts fixture; call must not throw.
+		$this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 1,
+			'reaction' => '❤️',
+		]);
+
+		$this->assertSame(3, $this->table->Reactions->find()->count());
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testSecurityFieldsAreNotMassAssignable(): void {
 		$entity = new Reaction();
 		$entity = $entity->patch([

@@ -47,6 +47,37 @@ $this->addBehavior('Reactions.Reactable', [
 ]);
 ```
 
+## Counter cache
+
+To denormalize the total number of reactions on each host record (avoids a JOIN /
+sub-select when listing many records), add a counter column to the host table and
+enable `counterCache`:
+
+```php
+// Migration: add the counter column to your host table
+$this->table('articles')
+	->addColumn('reactions_count', 'integer', ['default' => 0, 'null' => false])
+	->update();
+```
+
+```php
+$this->addBehavior('Reactions.Reactable', [
+	'counterCache' => true,
+	// 'fieldCounter' => 'reactions_count', // default
+]);
+```
+
+The column is refreshed after every `addReaction()`, `removeReaction()`, and
+`toggleReaction()` call. If the configured column does not exist on the host
+table the behavior silently skips the write so apps can enable the flag before
+running the schema change.
+
+> [!NOTE]
+> The counter is recomputed from the reactions table on every change (not
+> incremented), so it is self-healing even after manual edits. It does NOT cover
+> direct `ReactionsTable::add()` / `remove()` calls — go through the behavior to
+> keep the counter accurate.
+
 ## Helper
 
 ```php

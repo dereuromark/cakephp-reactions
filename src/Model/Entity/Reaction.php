@@ -14,7 +14,7 @@ use Cake\ORM\Entity;
  *
  * @property int $id
  * @property string $model
- * @property int $foreign_key
+ * @property int|string $foreign_key
  * @property int $user_id
  * @property string $reaction
  * @property \Cake\I18n\DateTime $created

@@ -44,6 +44,33 @@ class ReactionsControllerTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testToggleRefreshesCounterCacheOnHostTable(): void {
+		Configure::write('Reactions.models.Posts', 'Posts');
+
+		$posts = $this->fetchTable('Posts');
+		$posts->addBehavior('Reactions.Reactable', [
+			'counterCache' => true,
+			'fieldCounter' => 'count',
+		]);
+
+		$this->session([
+			'Auth' => [
+				'User' => [
+					'id' => 1,
+				],
+			],
+		]);
+
+		// Fixture has 2 reactions for Posts/1; toggle removes one → counter = 1.
+		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '👍']);
+		$this->assertSame(1, $posts->get(1)->get('count'));
+
+		Configure::delete('Reactions.models');
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testToggleJson(): void {
 		Configure::write('Reactions.models.Posts', 'Posts');
 
