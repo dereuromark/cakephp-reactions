@@ -4,6 +4,8 @@ declare(strict_types=1);
 namespace Reactions\Test\TestCase\View\Helper;
 
 use Cake\Core\Configure;
+use Cake\Http\ServerRequest;
+use Cake\Http\Session;
 use Cake\TestSuite\TestCase;
 use Cake\View\View;
 use Reactions\Utility\Config;
@@ -58,6 +60,22 @@ class ReactionsHelperTest extends TestCase {
 
 		$this->assertStringContainsString('Add reaction', $result);
 		$this->assertStringContainsString('👍', $result);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testWidgetReadsUserFromSession(): void {
+		Configure::delete('Auth.User.id');
+		$session = new Session();
+		$session->write('Auth.User.id', 1);
+		$view = new View(new ServerRequest(['session' => $session]));
+		$helper = new ReactionsHelper($view);
+
+		$result = $helper->widget('Posts', 1);
+
+		$this->assertStringContainsString('Add reaction', $result);
+		$this->assertStringContainsString('active', $result);
 	}
 
 	/**
