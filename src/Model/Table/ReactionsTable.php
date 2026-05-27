@@ -31,6 +31,11 @@ use Reactions\Model\Entity\Reaction;
 class ReactionsTable extends Table {
 
 	/**
+	 * @var string
+	 */
+	protected string $userAssociation = 'Users';
+
+	/**
 	 * @param array $config
 	 *
 	 * @return void
@@ -42,7 +47,8 @@ class ReactionsTable extends Table {
 
 		$this->addBehavior('Timestamp');
 
-		$this->belongsTo('Users', ['className' => Configure::read('Reactions.userModelClass') ?: 'Users']);
+		$this->userAssociation = (string)(Configure::read('Reactions.userModel') ?: 'Users');
+		$this->belongsTo($this->userAssociation, ['className' => Configure::read('Reactions.userModelClass') ?: 'Users']);
 	}
 
 	/**
@@ -67,9 +73,18 @@ class ReactionsTable extends Table {
 	 * @return \Cake\ORM\RulesChecker
 	 */
 	public function buildRules(RulesChecker $rules): RulesChecker {
-		$rules->add($rules->existsIn(['user_id'], 'Users'));
+		$rules->add($rules->existsIn(['user_id'], $this->userAssociation));
 
 		return $rules;
+	}
+
+	/**
+	 * @param string $userAssociation
+	 *
+	 * @return void
+	 */
+	public function setUserAssociation(string $userAssociation): void {
+		$this->userAssociation = $userAssociation;
 	}
 
 	/**

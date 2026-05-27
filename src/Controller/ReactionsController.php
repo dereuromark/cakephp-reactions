@@ -5,6 +5,7 @@ namespace Reactions\Controller;
 use App\Controller\AppController;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
+use Cake\Http\Exception\BadRequestException;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
@@ -150,8 +151,26 @@ class ReactionsController extends AppController {
 		if (!is_string($reaction) || $reaction === '') {
 			throw new InvalidArgumentException('Missing reaction for Reaction ' . $alias . ':' . $id);
 		}
+		$this->assertAllowedReaction($table, $reaction);
 
 		return [$model, $table, $entity, $uid, $reaction];
+	}
+
+	/**
+	 * @param \Cake\ORM\Table $table
+	 * @param string $reaction
+	 *
+	 * @return void
+	 */
+	protected function assertAllowedReaction(Table $table, string $reaction): void {
+		if ($table->behaviors()->has('Reactable')) {
+			$allowed = $table->getBehavior('Reactable')->getConfig('allowed');
+		} else {
+			$allowed = Configure::read('Reactions.allowed');
+		}
+		if ($allowed !== null && is_array($allowed) && !in_array($reaction, $allowed, true)) {
+			throw new BadRequestException('Invalid reaction key');
+		}
 	}
 
 	/**

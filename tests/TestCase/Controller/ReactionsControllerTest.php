@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Reactions\Test\TestCase\Controller;
 
 use Cake\Core\Configure;
+use Cake\Http\Exception\BadRequestException;
 use Cake\TestSuite\IntegrationTestTrait;
 use Cake\TestSuite\TestCase;
 
@@ -95,6 +96,32 @@ class ReactionsControllerTest extends TestCase {
 		$this->assertStringContainsString('"action": "removed"', (string)$this->_response->getBody());
 
 		Configure::delete('Reactions.models');
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testToggleRejectsDisallowedReaction(): void {
+		Configure::write('Reactions.models.Posts', 'Posts');
+		Configure::write('Reactions.allowed', ['👍']);
+		$this->disableErrorHandlerMiddleware();
+
+		$this->session([
+			'Auth' => [
+				'User' => [
+					'id' => 1,
+				],
+			],
+		]);
+
+		$this->expectException(BadRequestException::class);
+
+		try {
+			$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '❤️']);
+		} finally {
+			Configure::delete('Reactions.allowed');
+			Configure::delete('Reactions.models');
+		}
 	}
 
 }

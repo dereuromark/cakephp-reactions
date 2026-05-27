@@ -100,13 +100,14 @@ class ReactableBehavior extends Behavior {
 		]);
 
 		if ($this->getConfig('userModelConfig') && !$this->reactionsTable()->hasAssociation((string)$this->getConfig('userModel'))) {
-			$this->reactionsTable()->belongsTo($config['userModel'], $config['userModelConfig']);
+			$this->reactionsTable()->belongsTo((string)$this->getConfig('userModel'), $config['userModelConfig']);
 		} elseif (!$this->reactionsTable()->hasAssociation((string)$this->getConfig('userModel'))) {
 			$this->reactionsTable()->belongsTo((string)$this->getConfig('userModel'), [
 				'className' => $this->getConfig('userModelClass'),
 				'foreignKey' => 'user_id',
 			]);
 		}
+		$this->reactionsTable()->setUserAssociation((string)$this->getConfig('userModel'));
 	}
 
 	/**
