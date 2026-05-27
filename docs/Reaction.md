@@ -35,6 +35,33 @@ $this->addBehavior('Reactions.Reactable', [
 ]);
 ```
 
+## Reaction Type
+
+The bundled `Reactions\Reaction` enum exposes the eight default emoji as cases (`ThumbsUp`, `ThumbsDown`, `Laugh`, `Confused`, `Heart`, `Party`, `Rocket`, `Eyes`). Apps that want their own reaction set should declare their own `string`-backed enum; the behavior and controller accept any `string|\BackedEnum` so the plugin remains open to custom keys.
+
+```php
+use Reactions\Reaction;
+
+$behavior = $this->Posts->getBehavior('Reactable');
+
+$behavior->react($postId, by: $userId, with: Reaction::ThumbsUp);
+$behavior->unreact($postId, by: $userId, with: Reaction::ThumbsUp);
+$behavior->toggle($postId, by: $userId, with: Reaction::Rocket);
+```
+
+`react()`, `unreact()`, and `toggle()` are short, typed aliases for the array-form methods `addReaction()` / `removeReaction()` / `toggleReaction()`, which are still supported and accept BackedEnum cases in the `reaction` slot:
+
+```php
+$behavior->addReaction([
+	'modelId' => $postId,
+	'userId' => $userId,
+	'reaction' => Reaction::ThumbsUp,
+]);
+```
+
+> [!NOTE]
+> The aliases live on the behavior instance only — they are intentionally not registered as table magic methods, because `react`/`unreact`/`toggle` are generic verbs that would collide with other behaviors that expose the same names.
+
 ## Add A Reaction
 
 ```php
@@ -141,11 +168,11 @@ $this->addBehavior('Reactions.Reactable', [
 ]);
 ```
 
-Set an array to restrict accepted keys:
+Set an array to restrict accepted keys. Entries may be strings, `BackedEnum` cases, or a mix:
 
 ```php
 $this->addBehavior('Reactions.Reactable', [
-	'allowed' => ['👍', '👎', '❤️', 'rocket'],
+	'allowed' => [Reaction::ThumbsUp, Reaction::ThumbsDown, Reaction::Heart, 'rocket'],
 ]);
 ```
 

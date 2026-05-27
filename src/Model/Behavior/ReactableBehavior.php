@@ -2,6 +2,7 @@
 
 namespace Reactions\Model\Behavior;
 
+use BackedEnum;
 use Cake\Core\Configure;
 use Cake\Http\Exception\BadRequestException;
 use Cake\ORM\Behavior;
@@ -16,16 +17,20 @@ use Reactions\Model\Table\ReactionsTable;
  * ```php
  * $this->addBehavior('Reactions.Reactable');
  *
- * $this->Articles->addReaction([
- *     'modelId' => $articleId,
- *     'userId' => $userId,
- *     'reaction' => 'thumbsup',
- * ]);
+ * $behavior = $this->Articles->getBehavior('Reactable');
  *
- * $this->Articles->toggleReaction([
+ * // Short, typed API (recommended). These aliases are intentionally not
+ * // exposed as table magic methods (their verbs collide too easily with
+ * // other behaviors); call them on the behavior instance.
+ * $behavior->react($articleId, by: $userId, with: Reaction::ThumbsUp);
+ * $behavior->unreact($articleId, by: $userId, with: Reaction::ThumbsUp);
+ * $behavior->toggle($articleId, by: $userId, with: Reaction::ThumbsUp);
+ *
+ * // Array form is still supported and accepts strings or BackedEnum cases
+ * $behavior->addReaction([
  *     'modelId' => $articleId,
  *     'userId' => $userId,
- *     'reaction' => 'thumbsup',
+ *     'reaction' => Reaction::ThumbsUp,
  * ]);
  *
  * $this->Articles->find('reactions', id: $articleId);
@@ -47,6 +52,20 @@ class ReactableBehavior extends Behavior {
 		'implementedFinders' => [
 			'reactions' => 'findReactions',
 			'reactedBy' => 'findReactedBy',
+		],
+		// Explicit method allow-list so the short aliases `react()`, `unreact()`,
+		// and `toggle()` are NOT auto-registered as table magic methods. Those
+		// names are too generic and would collide with other behaviors that
+		// expose the same verbs; callers reach them via `$table->getBehavior(
+		// 'Reactable')->react(...)` instead, which is the recommended CakePHP
+		// 5.3+ form anyway (`$table->methodFromBehavior()` is deprecated).
+		'implementedMethods' => [
+			'addReaction' => 'addReaction',
+			'removeReaction' => 'removeReaction',
+			'toggleReaction' => 'toggleReaction',
+			'reactionCounts' => 'reactionCounts',
+			'userReactions' => 'userReactions',
+			'refreshReactionCount' => 'refreshReactionCount',
 		],
 	];
 
@@ -119,13 +138,14 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
+		$reaction = $this->normalizeReaction($options['reaction']);
 		$model = (string)$options['model'];
 		$modelId = $this->assertModelId($options['modelId']);
 		$entity = $this->reactionsTable()->add(
 			$model,
 			$modelId,
 			(int)$options['userId'],
-			(string)$options['reaction'],
+			$reaction,
 		);
 
 		if ($entity !== null) {
@@ -144,13 +164,14 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
+		$reaction = $this->normalizeReaction($options['reaction']);
 		$model = (string)$options['model'];
 		$modelId = $this->assertModelId($options['modelId']);
 		$deleted = $this->reactionsTable()->remove(
 			$model,
 			$modelId,
 			(int)$options['userId'],
-			(string)$options['reaction'],
+			$reaction,
 		);
 
 		if ($deleted > 0) {
@@ -169,13 +190,14 @@ class ReactableBehavior extends Behavior {
 		$options += ['reaction' => null, 'model' => $this->getConfig('model'), 'modelId' => null, 'userId' => null];
 		$this->assertAllowedReaction($options['reaction']);
 
+		$reaction = $this->normalizeReaction($options['reaction']);
 		$model = (string)$options['model'];
 		$modelId = $this->assertModelId($options['modelId']);
 		$action = $this->reactionsTable()->toggle(
 			$model,
 			$modelId,
 			(int)$options['userId'],
-			(string)$options['reaction'],
+			$reaction,
 		);
 
 		$this->updateCounterCache($model, $modelId);
@@ -184,6 +206,64 @@ class ReactableBehavior extends Behavior {
 			'action' => $action,
 			'counts' => $this->reactionCounts($modelId),
 		];
+	}
+
+	/**
+	 * Short, typed API alias for `addReaction()`. Accepts a `string|BackedEnum`
+	 * reaction value and skips the array-shape parameter.
+	 *
+	 * @param string|int $modelId
+	 * @param int $by
+	 * @param \BackedEnum|string $with
+	 *
+	 * @return int|null
+	 */
+	public function react(int|string $modelId, int $by, string|BackedEnum $with): ?int {
+		return $this->addReaction([
+			'modelId' => $modelId,
+			'userId' => $by,
+			'reaction' => $with,
+		]);
+	}
+
+	/**
+	 * Short, typed API alias for `removeReaction()`.
+	 *
+	 * @param string|int $modelId
+	 * @param int $by
+	 * @param \BackedEnum|string $with
+	 *
+	 * @return int
+	 */
+	public function unreact(int|string $modelId, int $by, string|BackedEnum $with): int {
+		return $this->removeReaction([
+			'modelId' => $modelId,
+			'userId' => $by,
+			'reaction' => $with,
+		]);
+	}
+
+	/**
+	 * Short, typed API alias for `toggleReaction()`.
+	 *
+	 * Call via the behavior (`$table->getBehavior('Reactable')->toggle(...)`).
+	 * The alias is NOT exposed as a table magic method — `toggle` is too
+	 * generic and would collide with other behaviors that expose the same
+	 * verb (CakePHP's BehaviorRegistry rejects duplicate implemented methods
+	 * at load time). The same applies to `react()` and `unreact()`.
+	 *
+	 * @param string|int $modelId
+	 * @param int $by
+	 * @param \BackedEnum|string $with
+	 *
+	 * @return array<string, array<string, int>|string>
+	 */
+	public function toggle(int|string $modelId, int $by, string|BackedEnum $with): array {
+		return $this->toggleReaction([
+			'modelId' => $modelId,
+			'userId' => $by,
+			'reaction' => $with,
+		]);
 	}
 
 	/**
@@ -268,9 +348,38 @@ class ReactableBehavior extends Behavior {
 	 */
 	protected function assertAllowedReaction(mixed $reaction): void {
 		$allowed = $this->getConfig('allowed');
-		if ($allowed !== null && is_array($allowed) && !in_array($reaction, $allowed, true)) {
-			throw new BadRequestException('Invalid reaction key');
+		if ($allowed === null || !is_array($allowed)) {
+			return;
 		}
+
+		$needle = $this->normalizeReaction($reaction);
+		foreach ($allowed as $entry) {
+			$entryValue = $entry instanceof BackedEnum ? (string)$entry->value : $entry;
+			if ($needle === $entryValue) {
+				return;
+			}
+		}
+
+		throw new BadRequestException('Invalid reaction key');
+	}
+
+	/**
+	 * Normalize a reaction value supplied as a plain string or a string-backed
+	 * enum case down to the string stored in `reactions_reactions.reaction`.
+	 *
+	 * @param mixed $reaction
+	 *
+	 * @return string
+	 */
+	protected function normalizeReaction(mixed $reaction): string {
+		if ($reaction instanceof BackedEnum) {
+			return (string)$reaction->value;
+		}
+		if (is_string($reaction) && $reaction !== '') {
+			return $reaction;
+		}
+
+		throw new BadRequestException('Invalid reaction');
 	}
 
 	/**

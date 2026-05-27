@@ -3,6 +3,7 @@
 namespace Reactions\Controller;
 
 use App\Controller\AppController;
+use BackedEnum;
 use Cake\Core\Configure;
 use Cake\Datasource\EntityInterface;
 use Cake\Http\Exception\BadRequestException;
@@ -168,9 +169,18 @@ class ReactionsController extends AppController {
 		} else {
 			$allowed = Configure::read('Reactions.allowed');
 		}
-		if ($allowed !== null && is_array($allowed) && !in_array($reaction, $allowed, true)) {
-			throw new BadRequestException('Invalid reaction key');
+		if ($allowed === null || !is_array($allowed)) {
+			return;
 		}
+
+		foreach ($allowed as $entry) {
+			$entryValue = $entry instanceof BackedEnum ? (string)$entry->value : $entry;
+			if ($reaction === $entryValue) {
+				return;
+			}
+		}
+
+		throw new BadRequestException('Invalid reaction key');
 	}
 
 	/**

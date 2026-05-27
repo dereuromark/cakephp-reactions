@@ -205,6 +205,22 @@ Component options:
 
 `ReactableBehavior` is the lowest-level public API for host models.
 
+### Short, Typed Aliases
+
+`react()`, `unreact()`, and `toggle()` accept any `string|\BackedEnum` so you can use the bundled `Reactions\Reaction` enum — or your own — instead of bare emoji strings:
+
+```php
+use Reactions\Reaction;
+
+$behavior = $this->Posts->getBehavior('Reactable');
+
+$behavior->react($postId, by: $userId, with: Reaction::ThumbsUp);
+$behavior->unreact($postId, by: $userId, with: Reaction::ThumbsUp);
+$behavior->toggle($postId, by: $userId, with: Reaction::Rocket);
+```
+
+These aliases live on the behavior instance only — they are intentionally not registered as table magic methods (`react`/`unreact`/`toggle` are too generic and would collide with other behaviors that expose the same names). The array-form methods below also accept BackedEnum cases in the `reaction` slot.
+
 ### Add
 
 ```php
