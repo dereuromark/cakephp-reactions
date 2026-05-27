@@ -135,6 +135,16 @@ class ReactableBehaviorTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testFindReactedByReturnsRecordsForUser(): void {
+		$posts = $this->table->find('reactedBy', userId: 1)->all()->toList();
+
+		$this->assertCount(1, $posts);
+		$this->assertSame(1, $posts[0]->get('id'));
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testAllowedSetRejectsUnknownReaction(): void {
 		$this->getTableLocator()->clear();
 		$this->table = $this->getTableLocator()->get('Posts');

@@ -24,22 +24,67 @@ class ReactionsControllerTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	protected function tearDown(): void {
+		parent::tearDown();
+
+		Configure::delete('Reactions.allowed');
+		Configure::delete('Reactions.models');
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testAdd(): void {
+		Configure::write('Reactions.models.Posts', 'Posts');
+		$this->login();
+
+		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'add', 'Posts', 1], ['reaction' => '❤️']);
+
+		$this->assertRedirect(['action' => 'index']);
+
+		$count = $this->fetchTable('Reactions.Reactions')->find()
+			->where([
+				'model' => 'Posts',
+				'foreign_key' => 1,
+				'user_id' => 1,
+				'reaction' => '❤️',
+			])
+			->count();
+		$this->assertSame(1, $count);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testRemove(): void {
+		Configure::write('Reactions.models.Posts', 'Posts');
+		$this->login();
+
+		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'remove', 'Posts', 1], ['reaction' => '👍']);
+
+		$this->assertRedirect(['action' => 'index']);
+
+		$count = $this->fetchTable('Reactions.Reactions')->find()
+			->where([
+				'model' => 'Posts',
+				'foreign_key' => 1,
+				'user_id' => 1,
+				'reaction' => '👍',
+			])
+			->count();
+		$this->assertSame(0, $count);
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testToggle(): void {
 		Configure::write('Reactions.models.Posts', 'Posts');
-
-		$this->session([
-			'Auth' => [
-				'User' => [
-					'id' => 1,
-				],
-			],
-		]);
+		$this->login();
 
 		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '👍']);
 
 		$this->assertRedirect(['action' => 'index']);
-
-		Configure::delete('Reactions.models');
 	}
 
 	/**
@@ -53,20 +98,11 @@ class ReactionsControllerTest extends TestCase {
 			'counterCache' => true,
 			'fieldCounter' => 'count',
 		]);
-
-		$this->session([
-			'Auth' => [
-				'User' => [
-					'id' => 1,
-				],
-			],
-		]);
+		$this->login();
 
 		// Fixture has 2 reactions for Posts/1; toggle removes one → counter = 1.
 		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '👍']);
 		$this->assertSame(1, $posts->get(1)->get('count'));
-
-		Configure::delete('Reactions.models');
 	}
 
 	/**
@@ -81,21 +117,13 @@ class ReactionsControllerTest extends TestCase {
 				'X-Requested-With' => 'XMLHttpRequest',
 			],
 		]);
-		$this->session([
-			'Auth' => [
-				'User' => [
-					'id' => 1,
-				],
-			],
-		]);
+		$this->login();
 
 		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '👍']);
 
 		$this->assertResponseOk();
 		$this->assertContentType('application/json');
 		$this->assertStringContainsString('"action": "removed"', (string)$this->_response->getBody());
-
-		Configure::delete('Reactions.models');
 	}
 
 	/**
@@ -105,7 +133,33 @@ class ReactionsControllerTest extends TestCase {
 		Configure::write('Reactions.models.Posts', 'Posts');
 		Configure::write('Reactions.allowed', ['👍']);
 		$this->disableErrorHandlerMiddleware();
+		$this->login();
 
+		$this->expectException(BadRequestException::class);
+
+		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '❤️']);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testDelete(): void {
+		$this->login();
+
+		$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'delete', 1]);
+
+		$this->assertRedirect(['action' => 'index']);
+
+		$count = $this->fetchTable('Reactions.Reactions')->find()
+			->where(['id' => 1])
+			->count();
+		$this->assertSame(0, $count);
+	}
+
+	/**
+	 * @return void
+	 */
+	protected function login(): void {
 		$this->session([
 			'Auth' => [
 				'User' => [
@@ -113,15 +167,6 @@ class ReactionsControllerTest extends TestCase {
 				],
 			],
 		]);
-
-		$this->expectException(BadRequestException::class);
-
-		try {
-			$this->post(['plugin' => 'Reactions', 'controller' => 'Reactions', 'action' => 'toggle', 'Posts', 1], ['reaction' => '❤️']);
-		} finally {
-			Configure::delete('Reactions.allowed');
-			Configure::delete('Reactions.models');
-		}
 	}
 
 }
