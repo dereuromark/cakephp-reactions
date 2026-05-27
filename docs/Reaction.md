@@ -181,6 +181,22 @@ Invalid keys raise `BadRequestException`.
 Controller endpoints also check `allowed`: they use the host table's loaded
 behavior config when available, otherwise `Configure::read('Reactions.allowed')`.
 
+`ReactionsTable::add()`, `remove()`, and `toggle()` are lower-level persistence
+helpers. They check table validation/rules and uniqueness, but they do not read
+the host behavior's `allowed` config. Treat direct table calls as trusted
+server-side writes; validate the reaction key yourself or use the behavior when
+you need allow-list enforcement:
+
+```php
+$behavior = $this->Posts->getBehavior('Reactable');
+
+if (!$behavior->isReactionAllowed($reaction)) {
+	throw new BadRequestException('Invalid reaction key');
+}
+
+$this->fetchTable('Reactions.Reactions')->add('Posts', $postId, $userId, $reaction);
+```
+
 ## Model Override
 
 Most callers should let the behavior use the host table alias as the stored

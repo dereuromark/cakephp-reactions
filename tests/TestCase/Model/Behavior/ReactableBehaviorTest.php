@@ -393,6 +393,24 @@ class ReactableBehaviorTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testIsReactionAllowed(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'allowed' => [ReactionEnum::Heart, '🚀'],
+		]);
+
+		$behavior = $this->table->getBehavior('Reactable');
+
+		$this->assertTrue($behavior->isReactionAllowed('❤️'));
+		$this->assertTrue($behavior->isReactionAllowed(ReactionEnum::Rocket));
+		$this->assertFalse($behavior->isReactionAllowed('👍'));
+		$this->assertFalse($behavior->isReactionAllowed(''));
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testReactableLoadsAlongsideBehaviorExposingToggleMethod(): void {
 		$this->getTableLocator()->clear();
 		$this->table = $this->getTableLocator()->get('Posts');

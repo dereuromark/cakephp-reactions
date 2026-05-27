@@ -482,6 +482,28 @@ The `reaction` column accepts emoji literals and named keys. On MySQL the
 migration uses `utf8mb4_bin` for the reaction column so emoji are grouped and
 deduplicated byte-for-byte.
 
+## Low-Level Table Writes
+
+Most application code should write through `ReactableBehavior` or the plugin
+controller/component flow. Those paths validate the reaction key against
+`allowed` when you configure an allow-list.
+
+`ReactionsTable::add()`, `remove()`, and `toggle()` are lower-level persistence
+helpers. They enforce the table rules, such as non-empty fields, user
+existence, and the unique reaction key, but they do not read `allowed` from the
+host model. Treat them as trusted server-side APIs. If you call them directly,
+validate the reaction key first when arbitrary keys are not acceptable:
+
+```php
+$behavior = $this->Posts->getBehavior('Reactable');
+
+if (!$behavior->isReactionAllowed($reaction)) {
+	throw new BadRequestException('Invalid reaction key');
+}
+
+$this->fetchTable('Reactions.Reactions')->add('Posts', $postId, $userId, $reaction);
+```
+
 ## Security Notes
 
 - Do not trust submitted `user_id` values. The plugin reads the user id from the
@@ -489,6 +511,9 @@ deduplicated byte-for-byte.
 - Configure `Reactions.models` for every model exposed through the controller
   strategy. Unknown aliases are rejected.
 - Use `allowed` when user-submitted arbitrary reaction keys are not acceptable.
+- Direct `ReactionsTable` writes do not enforce `allowed`; validate first or use
+  the behavior/controller path. `ReactableBehavior::isReactionAllowed()` is the
+  convenience preflight method for trusted low-level writes.
 - Reaction entity foreign keys are not mass assignable; write reactions through
   the table or behavior APIs.
 - The admin backend is disabled until `adminAccess` explicitly returns `true`.

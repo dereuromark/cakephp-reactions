@@ -66,6 +66,7 @@ class ReactableBehavior extends Behavior {
 			'reactionCounts' => 'reactionCounts',
 			'userReactions' => 'userReactions',
 			'refreshReactionCount' => 'refreshReactionCount',
+			'isReactionAllowed' => 'isReactionAllowed',
 		],
 	];
 
@@ -298,6 +299,27 @@ class ReactableBehavior extends Behavior {
 			->toList();
 
 		return $reactions;
+	}
+
+	/**
+	 * Checks whether a reaction value is valid for this behavior config.
+	 *
+	 * This is useful when app code intentionally uses lower-level
+	 * `ReactionsTable` methods and wants to preflight a user-supplied reaction
+	 * against the same rules the behavior uses before writing.
+	 *
+	 * @param mixed $reaction
+	 *
+	 * @return bool
+	 */
+	public function isReactionAllowed(mixed $reaction): bool {
+		try {
+			$this->assertAllowedReaction($reaction);
+		} catch (BadRequestException) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
