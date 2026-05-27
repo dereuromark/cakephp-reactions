@@ -88,4 +88,19 @@ class ReactionsHelperTest extends TestCase {
 		$this->assertStringContainsString('1', $result);
 	}
 
+	/**
+	 * @return void
+	 */
+	public function testUrlToggle(): void {
+		$result = $this->Reactions->urlToggle('Posts', 1);
+
+		$this->assertSame([
+			'plugin' => 'Reactions',
+			'controller' => 'Reactions',
+			'action' => 'toggle',
+			'Posts',
+			1,
+		], $result);
+	}
+
 }
