@@ -4,6 +4,7 @@ namespace Reactions\Controller;
 
 use App\Controller\AppController;
 use Cake\Core\Configure;
+use Cake\Datasource\EntityInterface;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\Http\Exception\NotFoundException;
 use Cake\Http\Response;
@@ -28,52 +29,50 @@ class ReactionsController extends AppController {
 
 	/**
 	 * @param string|null $alias
-	 * @param int|null $id
+	 * @param string|int|null $id
 	 *
 	 * @return \Cake\Http\Response|null
 	 */
-	public function add(?string $alias = null, ?int $id = null): ?Response {
+	public function add(?string $alias = null, string|int|null $id = null): ?Response {
 		$this->request->allowMethod(['post', 'put', 'patch']);
 
 		[$model, $entity, $uid, $reaction] = $this->resolveReactionRequest($alias, $id, 'add');
 
-		$result = $this->Reactions->add($model, (int)$entity->get('id'), $uid, $reaction);
-		if ($result->hasErrors()) {
-			$this->Flash->error(__d('reactions', 'Could not save reaction, please try again.'));
-		}
+		$this->Reactions->add($model, $this->foreignKey($entity), $uid, $reaction);
 
 		return $this->redirect($this->referer(['action' => 'index']));
 	}
 
 	/**
 	 * @param string|null $alias
-	 * @param int|null $id
+	 * @param string|int|null $id
 	 *
 	 * @return \Cake\Http\Response|null
 	 */
-	public function remove(?string $alias = null, ?int $id = null): ?Response {
+	public function remove(?string $alias = null, string|int|null $id = null): ?Response {
 		$this->request->allowMethod(['post', 'delete']);
 
 		[$model, $entity, $uid, $reaction] = $this->resolveReactionRequest($alias, $id, 'remove');
 
-		$this->Reactions->remove($model, (int)$entity->get('id'), $uid, $reaction);
+		$this->Reactions->remove($model, $this->foreignKey($entity), $uid, $reaction);
 
 		return $this->redirect($this->referer(['action' => 'index']));
 	}
 
 	/**
 	 * @param string|null $alias
-	 * @param int|null $id
+	 * @param string|int|null $id
 	 *
 	 * @return \Cake\Http\Response|null
 	 */
-	public function toggle(?string $alias = null, ?int $id = null): ?Response {
+	public function toggle(?string $alias = null, string|int|null $id = null): ?Response {
 		$this->request->allowMethod(['post']);
 
 		[$model, $entity, $uid, $reaction] = $this->resolveReactionRequest($alias, $id, 'toggle');
 
-		$result = $this->Reactions->toggle($model, (int)$entity->get('id'), $uid, $reaction);
-		$counts = $this->Reactions->counts($model, (int)$entity->get('id'));
+		$foreignKey = $this->foreignKey($entity);
+		$result = $this->Reactions->toggle($model, $foreignKey, $uid, $reaction);
+		$counts = $this->Reactions->counts($model, $foreignKey);
 
 		if ($this->request->is('json') || $this->request->is('ajax')) {
 			$this->viewBuilder()->setClassName(JsonView::class);
@@ -90,11 +89,11 @@ class ReactionsController extends AppController {
 	}
 
 	/**
-	 * @param int|null $id
+	 * @param string|int|null $id
 	 *
 	 * @return \Cake\Http\Response|null
 	 */
-	public function delete(?int $id = null): ?Response {
+	public function delete(string|int|null $id = null): ?Response {
 		$this->request->allowMethod(['post', 'delete']);
 
 		$id = $this->request->getData('id') ?: $id;
@@ -112,12 +111,12 @@ class ReactionsController extends AppController {
 
 	/**
 	 * @param string|null $alias
-	 * @param int|null $id
+	 * @param string|int|null $id
 	 * @param string $action
 	 *
 	 * @return array{0: string, 1: \Cake\Datasource\EntityInterface, 2: int, 3: string}
 	 */
-	protected function resolveReactionRequest(?string $alias, ?int $id, string $action): array {
+	protected function resolveReactionRequest(?string $alias, string|int|null $id, string $action): array {
 		$model = Configure::read('Reactions.models.' . $alias);
 		if (!$model) {
 			throw new NotFoundException('Invalid alias');
@@ -136,6 +135,24 @@ class ReactionsController extends AppController {
 		}
 
 		return [$model, $entity, $uid, $reaction];
+	}
+
+	/**
+	 * Returns the entity's primary key value untouched (int or string)
+	 * so polymorphic foreign keys (uuid, bigint) survive the round-trip
+	 * to the reactions table without being narrowed to int.
+	 *
+	 * @param \Cake\Datasource\EntityInterface $entity
+	 *
+	 * @return string|int
+	 */
+	protected function foreignKey(EntityInterface $entity): int|string {
+		$id = $entity->get('id');
+		if (is_int($id) || is_string($id)) {
+			return $id;
+		}
+
+		throw new InvalidArgumentException('Reactable entity has invalid primary key type');
 	}
 
 }

@@ -12,16 +12,18 @@ trait AuthTrait {
 	/**
 	 * @return int|null
 	 */
-	protected function userId() {
+	protected function userId(): ?int {
 		$userIdField = Configure::read('Reactions.userIdField') ?: 'id';
 		$sessionKey = Configure::read('Reactions.sessionKey') ?? 'Auth.User';
 
 		$uid = Configure::read($sessionKey . '.' . $userIdField);
 		if ($uid) {
-			return $uid;
+			return (int)$uid;
 		}
 
-		return $this->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
+		$uid = $this->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
+
+		return $uid !== null ? (int)$uid : null;
 	}
 
 }

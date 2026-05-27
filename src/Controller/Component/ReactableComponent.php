@@ -134,6 +134,11 @@ class ReactableComponent extends Component {
 		}
 
 		if ($this->getConfig('useEntity')) {
+			if ($this->getConfig('on') === 'startup') {
+				throw new BadRequestException(
+					'useEntity requires `on` to be `beforeRender`; the controller action has not yet set the view variable during startup.',
+				);
+			}
 			$entity = $this->Controller->viewBuilder()->getVar((string)$this->viewVariable);
 			if (!$entity) {
 				throw new BadRequestException('Missing reaction payload');
@@ -152,7 +157,7 @@ class ReactableComponent extends Component {
 
 		$options = [
 			'model' => $alias,
-			'modelId' => (int)$id,
+			'modelId' => $id,
 			'userId' => $userId,
 			'reaction' => $reaction,
 		];
@@ -191,13 +196,13 @@ class ReactableComponent extends Component {
 	/**
 	 * @return int|null
 	 */
-	protected function userId() {
+	protected function userId(): ?int {
 		$userIdField = Configure::read('Reactions.userIdField') ?: 'id';
 		$sessionKey = $this->getConfig('sessionKey') ?? Configure::read('Reactions.sessionKey') ?? 'Auth.User';
 
 		$uid = Configure::read($sessionKey . '.' . $userIdField);
 		if ($uid) {
-			return $uid;
+			return (int)$uid;
 		}
 
 		$userId = $this->getConfig('userId') ?: null;
@@ -205,7 +210,7 @@ class ReactableComponent extends Component {
 			$userId = $this->Controller->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
 		}
 
-		return $userId;
+		return $userId !== null ? (int)$userId : null;
 	}
 
 }

@@ -24,7 +24,9 @@ trait AuthTrait {
 		/** @var \App\View\AppView $view */
 		$view = $this->_View;
 
-		return $view->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
+		$uid = $view->getRequest()->getSession()->read($sessionKey . '.' . $userIdField);
+
+		return $uid !== null ? (int)$uid : null;
 	}
 
 }
