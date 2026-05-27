@@ -147,6 +147,29 @@ class ReactableBehaviorTest extends TestCase {
 	/**
 	 * @return void
 	 */
+	public function testCustomUserModelConfigUsesComputedAlias(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'userModelClass' => 'Accounts',
+			'userModelConfig' => [
+				'className' => 'Users',
+				'foreignKey' => 'user_id',
+			],
+		]);
+
+		$result = $this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 2,
+			'userId' => 1,
+			'reaction' => '🚀',
+		]);
+
+		$this->assertIsInt($result);
+	}
+
+	/**
+	 * @return void
+	 */
 	public function testCounterCacheRefreshesOnAdd(): void {
 		$this->getTableLocator()->clear();
 		$this->table = $this->getTableLocator()->get('Posts');

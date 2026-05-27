@@ -47,6 +47,24 @@ $this->addBehavior('Reactions.Reactable', [
 ]);
 ```
 
+Controller endpoints also honor `Reactions.allowed` from app config, or the
+host table's loaded `Reactable` behavior config when present.
+
+## User model
+
+By default reactions belong to `Users` through `user_id`. Apps with a different
+user table can configure the behavior association:
+
+```php
+$this->addBehavior('Reactions.Reactable', [
+	'userModelClass' => 'Accounts',
+	'userModelConfig' => [
+		'className' => 'Users',
+		'foreignKey' => 'user_id',
+	],
+]);
+```
+
 ## Counter cache
 
 To denormalize the total number of reactions on each host record (avoids a JOIN /
