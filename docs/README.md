@@ -22,28 +22,36 @@ $this->addBehavior('Reactions.Reactable');
 
 ## Usage
 
+Short, typed API — use the bundled `Reactions\Reaction` enum (or any `string`-backed enum your app defines) to skip magic strings:
+
 ```php
-$this->Articles->addReaction([
-	'modelId' => $articleId,
-	'userId' => $userId,
-	'reaction' => '👍',
-]);
+use Reactions\Reaction;
 
-$this->Articles->toggleReaction([
-	'modelId' => $articleId,
-	'userId' => $userId,
-	'reaction' => 'rocket',
-]);
+$behavior = $this->Articles->getBehavior('Reactable');
 
-$counts = $this->Articles->reactionCounts($articleId);
-$userReactions = $this->Articles->userReactions($articleId, $userId);
+$behavior->react($articleId, by: $userId, with: Reaction::ThumbsUp);
+$behavior->unreact($articleId, by: $userId, with: Reaction::ThumbsUp);
+$behavior->toggle($articleId, by: $userId, with: Reaction::Rocket);
+
+$counts = $behavior->reactionCounts($articleId);
+$userReactions = $behavior->userReactions($articleId, $userId);
 ```
 
-Restrict the allowed set if you do not want arbitrary reaction keys:
+The array form is unchanged and still accepts both plain strings and BackedEnum cases:
+
+```php
+$behavior->addReaction([
+	'modelId' => $articleId,
+	'userId' => $userId,
+	'reaction' => Reaction::ThumbsUp,
+]);
+```
+
+Restrict the allowed set if you do not want arbitrary reaction keys (entries may be strings, BackedEnum cases, or a mix):
 
 ```php
 $this->addBehavior('Reactions.Reactable', [
-	'allowed' => ['👍', '👎', '❤️', 'rocket'],
+	'allowed' => [Reaction::ThumbsUp, Reaction::ThumbsDown, Reaction::Heart, 'rocket'],
 ]);
 ```
 

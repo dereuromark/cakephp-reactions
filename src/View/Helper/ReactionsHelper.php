@@ -7,6 +7,7 @@ use Cake\Core\Configure;
 use Cake\Datasource\ModelAwareTrait;
 use Cake\Http\Exception\MethodNotAllowedException;
 use Cake\View\Helper;
+use Reactions\Reaction;
 use Reactions\Utility\Config;
 use RuntimeException;
 
@@ -20,6 +21,11 @@ class ReactionsHelper extends Helper {
 	use AuthTrait;
 
 	/**
+	 * Back-compat alias for `defaultIcons()`. Prefer the method; this constant
+	 * is kept for callers that referenced it before the `Reaction` enum landed.
+	 *
+	 * @deprecated Use `ReactionsHelper::defaultIcons()` (derived from `Reactions\Reaction`).
+     *
 	 * @var array<string, string>
 	 */
 	public const ICONS_GITHUB = [
@@ -32,6 +38,22 @@ class ReactionsHelper extends Helper {
 		'🚀' => '🚀',
 		'👀' => '👀',
 	];
+
+	/**
+	 * Default icon map derived from the bundled `Reaction` enum: emoji value
+	 * keyed by emoji value (the display string is identical to the stored
+	 * reaction key for the GitHub-style default set).
+	 *
+	 * @return array<string, string>
+	 */
+	public static function defaultIcons(): array {
+		$icons = [];
+		foreach (Reaction::cases() as $case) {
+			$icons[$case->value] = $case->value;
+		}
+
+		return $icons;
+	}
 
 	/**
 	 * @var array
@@ -162,7 +184,7 @@ class ReactionsHelper extends Helper {
 		/** @var array<string, string> $icons */
 		$icons = $this->getConfig('icons') ?: [];
 		if (!$icons) {
-			$icons = static::ICONS_GITHUB;
+			$icons = static::defaultIcons();
 		}
 
 		if (!$icons) {

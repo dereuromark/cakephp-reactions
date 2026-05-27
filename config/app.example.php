@@ -22,7 +22,9 @@ return [
 		'userModel' => 'Users',
 		'userModelClass' => 'Users',
 		'userModelConfig' => null,
-		'allowed' => ['👍', '👎', '❤️', 'rocket'], // null = allow any reaction key
+		// Allow list: strings, `Reactions\Reaction` (or any string-backed enum) cases, or a mix.
+		// Set to null to accept any reaction key.
+		'allowed' => ['👍', '👎', '❤️', 'rocket'],
 		'counterCache' => false,
 		'fieldCounter' => 'reactions_count',
 		'models' => [

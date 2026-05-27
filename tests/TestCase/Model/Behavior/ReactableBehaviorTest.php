@@ -6,6 +6,7 @@ namespace Reactions\Test\TestCase\Model\Behavior;
 use Cake\Http\Exception\BadRequestException;
 use Cake\TestSuite\TestCase;
 use Reactions\Model\Entity\Reaction;
+use Reactions\Reaction as ReactionEnum;
 
 class ReactableBehaviorTest extends TestCase {
 
@@ -293,6 +294,106 @@ class ReactableBehaviorTest extends TestCase {
 		]);
 
 		$this->assertSame(3, $this->table->Reactions->find()->count());
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testReactMethodAcceptsBackedEnum(): void {
+		$behavior = $this->table->getBehavior('Reactable');
+		$result = $behavior->react(1, by: 2, with: ReactionEnum::Heart);
+
+		$this->assertNotNull($result);
+		$row = $this->table->Reactions->get($result);
+		$this->assertSame('❤️', $row->reaction);
+		$this->assertSame(2, $row->user_id);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testUnreactMethodAcceptsBackedEnum(): void {
+		$behavior = $this->table->getBehavior('Reactable');
+		$deleted = $behavior->unreact(1, by: 1, with: ReactionEnum::ThumbsUp);
+
+		$this->assertSame(1, $deleted);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testToggleMethodAcceptsBackedEnum(): void {
+		$behavior = $this->table->getBehavior('Reactable');
+		$removed = $behavior->toggle(1, by: 1, with: ReactionEnum::ThumbsUp);
+		$added = $behavior->toggle(1, by: 1, with: ReactionEnum::ThumbsUp);
+
+		$this->assertSame('removed', $removed['action']);
+		$this->assertSame('added', $added['action']);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testAddReactionAcceptsBackedEnumInArrayForm(): void {
+		$id = $this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 2,
+			'reaction' => ReactionEnum::Rocket,
+		]);
+
+		$this->assertNotNull($id);
+		$this->assertSame('🚀', $this->table->Reactions->get($id)->reaction);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testAllowedListMatchesEnumAndStringEntries(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		$this->table->addBehavior('Reactions.Reactable', [
+			'allowed' => [ReactionEnum::Heart, '🚀'],
+		]);
+
+		// enum entry matches string input
+		$id = $this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 2,
+			'reaction' => '❤️',
+		]);
+		$this->assertNotNull($id);
+
+		// string entry matches enum input
+		$id = $this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 2,
+			'reaction' => ReactionEnum::Rocket,
+		]);
+		$this->assertNotNull($id);
+
+		// reaction not in either form is rejected
+		$this->expectException(BadRequestException::class);
+		$this->table->getBehavior('Reactable')->addReaction([
+			'modelId' => 1,
+			'userId' => 2,
+			'reaction' => ReactionEnum::ThumbsDown,
+		]);
+	}
+
+	/**
+	 * @return void
+	 */
+	public function testReactableLoadsAlongsideBehaviorExposingToggleMethod(): void {
+		$this->getTableLocator()->clear();
+		$this->table = $this->getTableLocator()->get('Posts');
+		// Test-only behavior that also exposes a `toggle()` method must not collide.
+		$this->table->addBehavior('ToggleStub');
+		$this->table->addBehavior('Reactions.Reactable');
+
+		$this->assertTrue($this->table->behaviors()->has('Reactable'));
+		$this->assertSame('stub', $this->table->getBehavior('ToggleStub')->toggle());
+		$result = $this->table->getBehavior('Reactable')->toggle(1, by: 1, with: ReactionEnum::ThumbsUp);
+		$this->assertSame('removed', $result['action']);
 	}
 
 	/**
