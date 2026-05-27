@@ -11,6 +11,8 @@
 
 Reactions plugin for CakePHP applications.
 
+This branch is for use with **CakePHP 5.1+**. For details see [version map](https://github.com/dereuromark/cakephp-reactions/wiki#cakephp-version-map).
+
 This is the multiple-reactions-per-entity companion to
 [dereuromark/cakephp-favorites](https://github.com/dereuromark/cakephp-favorites),
 which handles the single-opinion star/like/favorite use case. For ratings, use
