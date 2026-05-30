@@ -2,7 +2,8 @@
 
 ## Supported Versions
 
-Security fixes are applied to the latest release line. For details see [version map](https://github.com/dereuromark/cakephp-reactions/wiki).
+Security fixes are applied to the latest release line and backported for non-EOL versions. 
+For details see [version map](https://github.com/dereuromark/cakephp-reactions/wiki).
 
 ## Reporting a Vulnerability
 
