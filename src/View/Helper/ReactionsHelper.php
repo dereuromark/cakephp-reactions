@@ -88,7 +88,7 @@ class ReactionsHelper extends Helper {
 	 *
 	 * @return string
 	 */
-	public function widget(string $alias, int|string $id): string {
+	public function widget(string $alias, string|int $id): string {
 		$userReactions = $this->userReactionMap($alias, $id);
 		$icons = $this->icons();
 		$selected = [];
@@ -118,7 +118,7 @@ class ReactionsHelper extends Helper {
 	 *
 	 * @return string
 	 */
-	public function counts(string $alias, int|string $id): string {
+	public function counts(string $alias, string|int $id): string {
 		$table = $this->reactionTable();
 		$counts = $table->counts($alias, $id);
 		$icons = $this->icons();
@@ -138,7 +138,7 @@ class ReactionsHelper extends Helper {
 	 *
 	 * @return array|string
 	 */
-	public function urlToggle(string $alias, int|string $id): string|array {
+	public function urlToggle(string $alias, string|int $id): array|string {
 		return $this->url('toggle', $alias, $id);
 	}
 
@@ -150,7 +150,7 @@ class ReactionsHelper extends Helper {
 	 *
 	 * @return array<string, mixed>
 	 */
-	protected function data(string $action, string $alias, int|string $id, string $reaction): array {
+	protected function data(string $action, string $alias, string|int $id, string $reaction): array {
 		$strategy = Config::strategy((string)$this->getConfig('strategy'));
 
 		return match ($strategy) {
@@ -167,7 +167,7 @@ class ReactionsHelper extends Helper {
 	 *
 	 * @return array|string
 	 */
-	protected function url(string $action, string $alias, int|string $id): string|array {
+	protected function url(string $action, string $alias, string|int $id): array|string {
 		$strategy = Config::strategy((string)$this->getConfig('strategy'));
 
 		return match ($strategy) {
@@ -200,7 +200,7 @@ class ReactionsHelper extends Helper {
 	 *
 	 * @return array<string, bool>
 	 */
-	protected function userReactionMap(string $alias, int|string $id): array {
+	protected function userReactionMap(string $alias, string|int $id): array {
 		$uid = $this->userId();
 		if (!$uid) {
 			throw new MethodNotAllowedException('Must be logged in');

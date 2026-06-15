@@ -97,7 +97,7 @@ class ReactionsTable extends Table {
 	 *
 	 * @return \Reactions\Model\Entity\Reaction|null
 	 */
-	public function add(string $model, int|string $foreignKey, int $userId, string $reaction): ?Reaction {
+	public function add(string $model, string|int $foreignKey, int $userId, string $reaction): ?Reaction {
 		$created = null;
 		$this->findOrCreate(
 			[
@@ -129,7 +129,7 @@ class ReactionsTable extends Table {
 	 *
 	 * @return int
 	 */
-	public function remove(string $model, int|string $foreignKey, int $userId, string $reaction): int {
+	public function remove(string $model, string|int $foreignKey, int $userId, string $reaction): int {
 		return $this->deleteAll([
 			'model' => $model,
 			'foreign_key' => $foreignKey,
@@ -146,7 +146,7 @@ class ReactionsTable extends Table {
 	 *
 	 * @return string
 	 */
-	public function toggle(string $model, int|string $foreignKey, int $userId, string $reaction): string {
+	public function toggle(string $model, string|int $foreignKey, int $userId, string $reaction): string {
 		$conditions = [
 			'model' => $model,
 			'foreign_key' => $foreignKey,
@@ -176,7 +176,7 @@ class ReactionsTable extends Table {
 	 *
 	 * @return array<string, int>
 	 */
-	public function counts(string $model, int|string $foreignKey): array {
+	public function counts(string $model, string|int $foreignKey): array {
 		$query = $this->find();
 
 		/** @var array<string, int> $result */

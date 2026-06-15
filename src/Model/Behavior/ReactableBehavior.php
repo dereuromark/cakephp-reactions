@@ -219,7 +219,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return int|null
 	 */
-	public function react(int|string $modelId, int $by, string|BackedEnum $with): ?int {
+	public function react(string|int $modelId, int $by, BackedEnum|string $with): ?int {
 		return $this->addReaction([
 			'modelId' => $modelId,
 			'userId' => $by,
@@ -236,7 +236,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return int
 	 */
-	public function unreact(int|string $modelId, int $by, string|BackedEnum $with): int {
+	public function unreact(string|int $modelId, int $by, BackedEnum|string $with): int {
 		return $this->removeReaction([
 			'modelId' => $modelId,
 			'userId' => $by,
@@ -259,7 +259,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return array<string, array<string, int>|string>
 	 */
-	public function toggle(int|string $modelId, int $by, string|BackedEnum $with): array {
+	public function toggle(string|int $modelId, int $by, BackedEnum|string $with): array {
 		return $this->toggleReaction([
 			'modelId' => $modelId,
 			'userId' => $by,
@@ -272,7 +272,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return array<string, int>
 	 */
-	public function reactionCounts(int|string $modelId): array {
+	public function reactionCounts(string|int $modelId): array {
 		return $this->reactionsTable()->counts((string)$this->getConfig('model'), $modelId);
 	}
 
@@ -282,7 +282,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return array<string>
 	 */
-	public function userReactions(int|string $modelId, int $userId): array {
+	public function userReactions(string|int $modelId, int $userId): array {
 		$query = $this->reactionsTable()->find();
 
 		/** @var array<string> $reactions */
@@ -423,7 +423,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return void
 	 */
-	public function refreshReactionCount(string $model, int|string $modelId): void {
+	public function refreshReactionCount(string $model, string|int $modelId): void {
 		if (!$this->getConfig('counterCache')) {
 			return;
 		}
@@ -462,7 +462,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return void
 	 */
-	protected function updateCounterCache(string $model, int|string $modelId): void {
+	protected function updateCounterCache(string $model, string|int $modelId): void {
 		if ($model !== $this->getConfig('model')) {
 			return;
 		}
@@ -475,7 +475,7 @@ class ReactableBehavior extends Behavior {
 	 *
 	 * @return string|int
 	 */
-	protected function assertModelId(mixed $modelId): int|string {
+	protected function assertModelId(mixed $modelId): string|int {
 		if (is_int($modelId)) {
 			return $modelId;
 		}
