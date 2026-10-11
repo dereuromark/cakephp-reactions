@@ -28,7 +28,7 @@ class ReactableComponent extends Component {
 	];
 
 	/**
-	 * @var array
+	 * @var array<int|string, array<string, mixed>|string>
 	 */
 	protected array $components = [
 		'Flash',
