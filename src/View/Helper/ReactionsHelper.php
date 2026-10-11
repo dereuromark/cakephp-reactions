@@ -56,7 +56,7 @@ class ReactionsHelper extends Helper {
 	}
 
 	/**
-	 * @var array
+	 * @var array<int|string, array<string, mixed>|string>
 	 */
 	protected array $helpers = [
 		'Url',
