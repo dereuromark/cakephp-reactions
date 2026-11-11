@@ -200,7 +200,7 @@ class ReactionsController extends AppController {
 	 *
 	 * @return void
 	 */
-	protected function refreshReactionCount(Table $table, string $model, int|string $modelId): void {
+	protected function refreshReactionCount(Table $table, string $model, string|int $modelId): void {
 		if (!$table->behaviors()->has('Reactable')) {
 			return;
 		}
@@ -219,7 +219,7 @@ class ReactionsController extends AppController {
 	 *
 	 * @return string|int
 	 */
-	protected function foreignKey(EntityInterface $entity): int|string {
+	protected function foreignKey(EntityInterface $entity): string|int {
 		$id = $entity->get('id');
 		if (is_int($id) || is_string($id)) {
 			return $id;

@@ -5,7 +5,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2026-05-25 00:00+0200\n"
+"POT-Creation-Date: 2026-10-11 17:09+0000\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -29,9 +29,6 @@ msgstr ""
 msgid "The reaction could not be deleted. Please, try again."
 msgstr ""
 
-msgid "Could not save reaction, please try again."
-msgstr ""
-
 msgid "You are not authorized to remove this reaction."
 msgstr ""
 
@@ -42,6 +39,12 @@ msgid "Actions"
 msgstr ""
 
 msgid "Reactions"
+msgstr ""
+
+msgid "Reset"
+msgstr ""
+
+msgid "Are you sure?"
 msgstr ""
 
 msgid "Details"
@@ -73,3 +76,4 @@ msgstr ""
 
 msgid "Page {{page}} of {{pages}}, showing {{current}} record(s) out of {{count}} total"
 msgstr ""
+
